@@ -6,20 +6,21 @@ import TodayTab from './components/TodayTab'
 import SearchTab from './components/SearchTab'
 import ScanTab from './components/ScanTab'
 import ProfileSetup from './components/ProfileSetup'
+import CalendarTab from './components/CalendarTab'
 
 const TABS = [
-  { id: 'today',  label: 'Hoy' },
-  { id: 'search', label: 'Buscar' },
-  { id: 'scan',   label: 'Escanear' },
+  { id: 'today',    label: 'Hoy'       },
+  { id: 'search',   label: 'Buscar'    },
+  { id: 'scan',     label: 'Escanear'  },
+  { id: 'calendar', label: '📅'        },
 ]
 
 export default function App() {
-  const [activeTab, setActiveTab]       = useState('today')
+  const [activeTab, setActiveTab]           = useState('today')
   const [editingProfile, setEditingProfile] = useState(false)
-  const { todayEntries, totals, todayWater, addFood, removeFood, addWater } = useNutriLog()
-  const { profile, goals, saveProfile } = useProfile()
+  const { todayEntries, totals, todayWater, addFood, removeFood, addWater, log } = useNutriLog()
+  const { profile, goals, saveProfile }     = useProfile()
 
-  // Primera vez — mostrar onboarding
   if (!profile || editingProfile) {
     return (
       <ProfileSetup
@@ -37,7 +38,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
       <div className="max-w-md mx-auto pb-20">
-        {/* Header */}
         <div className="sticky top-0 z-10 bg-[#F7F5F0] border-b border-[#E0DED6] px-5 pt-5 pb-0">
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-baseline gap-2">
@@ -54,9 +54,8 @@ export default function App() {
             </button>
           </div>
           <p className="text-xs text-[#888780] mb-3">
-            Objetivo: {goals?.kcal} kcal · {goals?.protein}g prot · {goals?.carbs}g carbs · {goals?.fat}g grasa
+            Obj: {goals?.kcal} kcal · {goals?.protein}g prot · {goals?.carbs}g carbs · {goals?.fat}g grasa
           </p>
-
           <div className="flex gap-0 bg-[#E0DED6] rounded-xl p-1">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -76,8 +75,9 @@ export default function App() {
               <TodayTab entries={todayEntries} onRemove={removeFood} />
             </>
           )}
-          {activeTab === 'search' && <SearchTab onAdd={handleAdd} />}
-          {activeTab === 'scan'   && <ScanTab   onAdd={handleAdd} />}
+          {activeTab === 'search'   && <SearchTab   onAdd={handleAdd} />}
+          {activeTab === 'scan'     && <ScanTab     onAdd={handleAdd} />}
+          {activeTab === 'calendar' && <CalendarTab log={log} goals={goals} />}
         </div>
       </div>
     </div>
