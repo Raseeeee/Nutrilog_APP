@@ -1,13 +1,7 @@
-/**
- * Escáner de código de barras usando @zxing/browser (cámara en vivo).
- * Mucho más fiable que decodificar una foto estática.
- * Instalar: npm install @zxing/browser @zxing/library
- */
-import {
-  BrowserMultiFormatReader,
-  DecodeHintType,
-  BarcodeFormat,
-} from '@zxing/browser'
+// BrowserMultiFormatReader viene de @zxing/browser
+// DecodeHintType y BarcodeFormat vienen de @zxing/library — paquetes separados
+import { BrowserMultiFormatReader } from '@zxing/browser'
+import { DecodeHintType, BarcodeFormat } from '@zxing/library'
 
 const HINTS = new Map([
   [DecodeHintType.POSSIBLE_FORMATS, [
@@ -23,18 +17,10 @@ const HINTS = new Map([
   [DecodeHintType.TRY_HARDER, true],
 ])
 
-/**
- * Devuelve una instancia nueva del lector.
- * Llamar .reset() cuando ya no se necesite.
- */
 export function createBarcodeReader() {
   return new BrowserMultiFormatReader(HINTS)
 }
 
-/**
- * Normaliza el código según spec OpenFoodFacts:
- * ≤8 dígitos → pad a 8, 9-12 → pad a 13
- */
 export function normalizeBarcode(code) {
   const digits = code.replace(/\D/g, '')
   if (digits.length <= 8)  return digits.padStart(8,  '0')
