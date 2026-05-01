@@ -10,7 +10,7 @@
  * Docs: https://ai.google.dev/api/generate-content
  */
 
-const GEMINI_MODEL = 'gemini-1.5-flash'
+const GEMINI_MODEL = 'gemini-pro-vision'
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
 const PROMPT = `Analiza esta imagen de comida y responde SOLO con un JSON válido, sin markdown ni explicaciones adicionales.
