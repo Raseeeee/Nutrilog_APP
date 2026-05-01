@@ -9,11 +9,14 @@ export default function ScanTab({ onAdd }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [meal, setMeal] = useState('Almuerzo')
-  const inputRef = useRef()
+
+  const cameraRef = useRef()
+  const galleryRef = useRef()
 
   async function handleFile(e) {
     const file = e.target.files?.[0]
     if (!file) return
+    e.target.value = '' // permite volver a seleccionar el mismo archivo
     setPreview(URL.createObjectURL(file))
     setResult(null)
     setError(null)
@@ -57,46 +60,83 @@ export default function ScanTab({ onAdd }) {
             <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline">
               aistudio.google.com
             </a>{' '}
-            y añádela en tu archivo <code className="bg-[#F7E8C8] px-1 rounded">.env</code> como{' '}
-            <code className="bg-[#F7E8C8] px-1 rounded">VITE_GEMINI_API_KEY=...</code>.
+            y añádela en Vercel → Settings → Environment Variables como{' '}
+            <code className="bg-[#F7E8C8] px-1 rounded">VITE_GEMINI_API_KEY</code>.
             El plan gratuito incluye 15 req/min.
           </p>
         </div>
       )}
 
-      <div
-        onClick={() => inputRef.current?.click()}
-        className="border-2 border-dashed border-[#E0DED6] rounded-2xl p-8 text-center bg-white hover:border-[#639922] hover:bg-[#EAF3DE] cursor-pointer transition-colors"
-      >
-        {preview ? (
+      {/* Preview de la imagen seleccionada */}
+      {preview ? (
+        <div className="relative mb-3">
           <img
             src={preview}
             alt="Vista previa"
-            className="max-h-48 mx-auto rounded-xl object-contain"
+            className="w-full max-h-56 object-contain rounded-2xl border border-[#E0DED6] bg-white"
           />
-        ) : (
-          <>
-            <div className="text-4xl mb-2">📷</div>
-            <p className="text-sm font-medium text-[#1C1C1A]">Subir foto del plato</p>
-            <p className="text-xs text-[#888780] mt-1">
-              Gemini Flash identificará los alimentos y estimará las calorías
-            </p>
-          </>
-        )}
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={handleFile}
-        />
+          <button
+            onClick={() => { setPreview(null); setResult(null); setError(null) }}
+            className="absolute top-2 right-2 bg-white border border-[#E0DED6] rounded-full w-7 h-7 text-[#888780] hover:text-[#E24B4A] text-sm leading-none flex items-center justify-center"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white border border-[#E0DED6] rounded-2xl p-6 mb-3 text-center">
+          <div className="text-4xl mb-2">🍽️</div>
+          <p className="text-sm font-medium text-[#1C1C1A]">Fotografía tu plato</p>
+          <p className="text-xs text-[#888780] mt-1">
+            Gemini identificará los alimentos y estimará las calorías
+          </p>
+        </div>
+      )}
+
+      {/* Botones cámara y galería */}
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <button
+          onClick={() => cameraRef.current?.click()}
+          className="flex flex-col items-center gap-1.5 bg-[#639922] text-white rounded-xl py-3.5 px-3 hover:bg-[#3B6D11] active:scale-95 transition-all"
+        >
+          <span className="text-2xl">📷</span>
+          <span className="text-xs font-medium">Usar cámara</span>
+        </button>
+
+        <button
+          onClick={() => galleryRef.current?.click()}
+          className="flex flex-col items-center gap-1.5 bg-white border border-[#E0DED6] text-[#1C1C1A] rounded-xl py-3.5 px-3 hover:border-[#639922] hover:bg-[#EAF3DE] active:scale-95 transition-all"
+        >
+          <span className="text-2xl">🖼️</span>
+          <span className="text-xs font-medium">Desde galería</span>
+        </button>
       </div>
+
+      {/* capture="environment" → abre cámara trasera directamente en móvil */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFile}
+      />
+      {/* sin capture → abre galería en móvil, explorador de archivos en escritorio */}
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+
+      <p className="text-[10px] text-[#888780] text-center mb-4">
+        En móvil: instala la app (Añadir a pantalla de inicio) para mejor acceso a la cámara
+      </p>
 
       {loading && (
         <div className="text-center py-6 text-sm text-[#888780]">
           <div className="text-2xl mb-2 animate-pulse">🔍</div>
-          Analizando con Gemini Flash…
+          Analizando con Gemini 2.5 Flash…
         </div>
       )}
 
@@ -107,7 +147,7 @@ export default function ScanTab({ onAdd }) {
       )}
 
       {result?.detected && (
-        <div className="mt-3 bg-white border border-[#E0DED6] rounded-xl p-4">
+        <div className="bg-white border border-[#E0DED6] rounded-xl p-4">
           <div className="flex justify-between items-start mb-2">
             <div>
               <div className="font-medium text-[#1C1C1A]">{result.dish}</div>
@@ -157,7 +197,7 @@ export default function ScanTab({ onAdd }) {
       )}
 
       {result && !result.detected && (
-        <div className="mt-3 bg-[#FAEEDA] border border-[#FAC775] rounded-xl p-3 text-sm text-[#633806]">
+        <div className="bg-[#FAEEDA] border border-[#FAC775] rounded-xl p-3 text-sm text-[#633806]">
           No se detectó comida en la imagen. {result.notes}
         </div>
       )}
