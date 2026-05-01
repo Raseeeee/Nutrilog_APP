@@ -3,8 +3,11 @@
  * Mucho más fiable que decodificar una foto estática.
  * Instalar: npm install @zxing/browser @zxing/library
  */
-import { BrowserMultiFormatReader } from '@zxing/browser'
-import { DecodeHintType, BarcodeFormat } from '@zxing/library'
+import {
+  BrowserMultiFormatReader,
+  DecodeHintType,
+  BarcodeFormat,
+} from '@zxing/browser'
 
 const HINTS = new Map([
   [DecodeHintType.POSSIBLE_FORMATS, [
@@ -19,8 +22,6 @@ const HINTS = new Map([
   ]],
   [DecodeHintType.TRY_HARDER, true],
 ])
-
-// ... el resto del código igual
 
 /**
  * Devuelve una instancia nueva del lector.
