@@ -1,52 +1,43 @@
 /**
- * Lee códigos de barras de una imagen usando @zxing/library.
- * No consume cuota de Gemini. Funciona 100% en el navegador.
- * 
- * Instalación: npm install @zxing/library
+ * Escáner de código de barras usando @zxing/browser (cámara en vivo).
+ * Mucho más fiable que decodificar una foto estática.
+ * Instalar: npm install @zxing/browser @zxing/library
  */
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library'
+import {
+  BrowserMultiFormatReader,
+  DecodeHintType,
+  BarcodeFormat,
+} from '@zxing/browser'
 
-let reader = null
+const HINTS = new Map([
+  [DecodeHintType.POSSIBLE_FORMATS, [
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.EAN_8,
+    BarcodeFormat.UPC_A,
+    BarcodeFormat.UPC_E,
+    BarcodeFormat.CODE_128,
+    BarcodeFormat.CODE_39,
+    BarcodeFormat.ITF,
+    BarcodeFormat.QR_CODE,
+  ]],
+  [DecodeHintType.TRY_HARDER, true],
+])
 
-function getReader() {
-  if (!reader) {
-    const hints = new Map()
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.QR_CODE,
-      BarcodeFormat.DATA_MATRIX,
-    ])
-    hints.set(DecodeHintType.TRY_HARDER, true)
-    reader = new BrowserMultiFormatReader(hints)
-  }
-  return reader
+/**
+ * Devuelve una instancia nueva del lector.
+ * Llamar .reset() cuando ya no se necesite.
+ */
+export function createBarcodeReader() {
+  return new BrowserMultiFormatReader(HINTS)
 }
 
 /**
- * Lee el código de barras de un File de imagen.
- * @param {File} imageFile
- * @returns {Promise<string|null>} código o null si no se encuentra
+ * Normaliza el código según spec OpenFoodFacts:
+ * ≤8 dígitos → pad a 8, 9-12 → pad a 13
  */
-export async function readBarcodeFromFile(imageFile) {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(imageFile)
-    const img = new Image()
-    img.onload = () => {
-      try {
-        const result = getReader().decodeFromImageElement(img)
-        URL.revokeObjectURL(url)
-        resolve(result?.getText() || null)
-      } catch {
-        URL.revokeObjectURL(url)
-        resolve(null)
-      }
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
-    img.src = url
-  })
+export function normalizeBarcode(code) {
+  const digits = code.replace(/\D/g, '')
+  if (digits.length <= 8)  return digits.padStart(8,  '0')
+  if (digits.length <= 12) return digits.padStart(13, '0')
+  return digits
 }
